@@ -210,7 +210,7 @@
                                 <?php } ?>
                             </select></td>
                         <td class='right'><input type='text' name='retargeting_module[<?php echo $module_row; ?>][sort_order]' value='<?php echo $module['sort_order']; ?>' size='3' /></td>
-                        <td class='left'><a onclick='$('#module-row<?php echo $module_row; ?>').remove();' class='button'><?php echo $button_remove; ?></a></td>
+                        <td class='left'><a onclick='$("#module-row<?php echo $module_row; ?>").remove();' class='button'><?php echo $button_remove; ?></a></td>
                     </tr>
                     </tbody>
                     <?php $module_row++; ?>
