@@ -258,5 +258,5 @@
         module_row++;
     }
     //-->
-    </script>
+</script>
 <?php echo $footer; ?>
