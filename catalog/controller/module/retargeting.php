@@ -7,6 +7,8 @@
  * MODULE: Retargeting
  */
 
+include_once 'Retargeting_REST_API_Client.php';
+
 class ControllerModuleRetargeting extends Controller {
 
 	public function index() {
@@ -842,6 +844,40 @@ class ControllerModuleRetargeting extends Controller {
                                         if( _ra.ready !== undefined ) {
                                             _ra.saveOrder(_ra.saveOrderInfo, _ra.saveOrderProducts);
                                         }";
+            /*
+            * REST API Save Order
+            */
+            if($this->data['api_key_field'] && $this->data['api_key_field'] != '' &&  $this->data['api_secret_field'] && $this->data['api_secret_field'] != '') {
+
+                $orderInfo = array(
+                    'order_no' => $order_no,
+                    'lastname' => $lastname,
+                    'firstname'=> $firstname,
+                    'email'=> $email,
+                    'phone'=> $phone,
+                    'state' => $state,
+                    'city' => $city,
+                    'address' => $address,
+                    'discount_code' => $discount_code,
+                    'discount' => $total_discount_value,
+                    'shipping' => $shipping_value,
+                    'total' => $total_order_value
+                );
+
+                $orderProducts = array();
+                foreach($order_product_query->rows as $orderedProduct) {
+                    $orderProducts[] = array(
+                        'id' => $orderedProduct['product_id'],
+                        'quantity'=> $orderedProduct['quantity'],
+                        'price'=> $orderedProduct['price'],
+                        'variation_code'=> ''
+                    );
+                }
+                $orderClient = new Retargeting_REST_API_Client($this->data['api_key_field'], $this->data['api_secret_field']);
+                $orderClient->setResponseFormat("json");
+                $orderClient->setDecoding(false);
+                $response = $orderClient->order->save($orderInfo,$orderProducts);
+            }
 
             /*
              * Prevent
