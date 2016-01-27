@@ -495,7 +495,9 @@ class ControllerModuleRetargeting extends Controller {
             $product_details = $this->model_catalog_product->getProduct($product_id);
             $product_categories = $this->db->query("SELECT * FROM `" . DB_PREFIX . "product_to_category` WHERE `product_id` = '{$product_id}'");
             $product_categories = $product_categories->rows; // Get all the subcategories for this product. Reorder its numerical indexes to ease the breadcrumb logic
-
+            $product_current_currency_price = $this->currency->format($this->tax->calculate($product_details['price'], $product_details['tax_class_id'], $this->config->get('config_tax')), '', '', false);
+            $product_current_currency_special = (isset($product_details['special']) ? $this->currency->format($this->tax->calculate($product_details['special'], $product_details['tax_class_id'], $this->config->get('config_tax')), '', '', false) : 0);
+            
             /* Send the base info */
             $this->data['sendProduct'] = "
                                     var _ra = _ra || {}; _ra.sendProductInfo = {
@@ -505,8 +507,8 @@ class ControllerModuleRetargeting extends Controller {
                                     'name': '{$product_details['name']}',
                                     'url': '{$product_url}',
                                     'img': '{$this->data['shop_url']}image/{$product_details['image']}',
-                                    'price': {$product_details['price']},
-                                    'promo': ". (isset($product_details['special']) ? $product_details['special'] : 0) .",
+                                    'price': {$product_current_currency_price},
+                                    'promo': {$product_current_currency_special},
                                     'stock': ". (($product_details['quantity'] > 0) ? 1 : 0) .",
                                     ";
 
@@ -715,11 +717,12 @@ class ControllerModuleRetargeting extends Controller {
                                             jQuery(document).ready(function($) {
                                                 if ($(\"{$this->data['retargeting_mouseOverPrice']}\").length > 0) {
                                                     $(\"{$this->data['retargeting_mouseOverPrice']}\").mouseover(function(){
-                                                        _ra.mouseOverPrice({$mouseOverPrice_product_id}, {
+                                                        if (typeof _ra.mouseOverAddToCart !== \"undefined\")
+                                                            _ra.mouseOverPrice({$mouseOverPrice_product_id}, {
                                                                                                         'price': {$mouseOverPrice_product_info['price']},
                                                                                                         'promo': {$mouseOverPrice_product_promo}
                                                                                                         }, function() {console.log('mouseOverPrice FIRED')}
-                                                        );
+                                                            );
                                                     });
                                                 }
                                             });
@@ -747,7 +750,8 @@ class ControllerModuleRetargeting extends Controller {
                                                     if ($(\"{$this->data['retargeting_addToCart']}\").length > 0) {
                                                         /* -- mouseOverAddToCart -- */
                                                         $(\"{$this->data['retargeting_addToCart']}\").mouseover(function(){
-                                                             _ra.mouseOverAddToCart({$mouseOverAddToCart_product_id}, function(){console.log('mouseOverAddToCart FIRED')});
+                                                            if (typeof _ra.mouseOverAddToCart !== \"undefined\")
+                                                                _ra.mouseOverAddToCart({$mouseOverAddToCart_product_id}, function(){console.log('mouseOverAddToCart FIRED')});
                                                         });
 
                                                         /* -- addToCart -- */
