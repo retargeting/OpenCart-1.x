@@ -62,16 +62,18 @@ class ControllerModuleRetargeting extends Controller {
             $output = '<products>';
             foreach ($products as $product) {
                 $product['quantity'] = (isset($product['quantity']) && !empty($product['quantity'])) ? 1 : 0;
-                $product_promotional_price = isset($product['special']) ? $product['special'] : 0;
                 $product_url = htmlspecialchars($this->url->link('product/product', 'product_id=' . $product['product_id']), ENT_XML1);
                 $product_image_url = $this->data['shop_url'] . 'image/' . $product['image'];
                 $product_image_url = htmlspecialchars($product_image_url, ENT_XML1);
+                $product_current_currency_price = $this->currency->format($this->tax->calculate($product['price'], $product['tax_class_id'], $this->config->get('config_tax')), '', '', false);
+                $product_current_currency_special = (isset($product['special']) ? $this->currency->format($this->tax->calculate($product['special'], $product['tax_class_id'], $this->config->get('config_tax')), '', '', false) : 0);
+
                 $output .= "
                                 <product>
                                     <id>{$product['product_id']}</id>
                                     <stock>{$product['quantity']}</stock>
-                                    <price>{$product['price']}</price>
-                                    <promo>{$product_promotional_price}</promo>
+                                    <price>{$product_current_currency_price}</price>
+                                    <promo>{$product_current_currency_special}</promo>
                                     <url>{$product_url}</url>
                                     <image>{$product_image_url}</image>
                                 </product>
@@ -711,6 +713,10 @@ class ControllerModuleRetargeting extends Controller {
             $mouseOverPrice_product_id = $this->request->get['product_id'];
             $mouseOverPrice_product_info = $this->model_catalog_product->getProduct($mouseOverPrice_product_id);
             $mouseOverPrice_product_promo = (isset($mouseOverPrice_product_info['special'])) ? $mouseOverPrice_product_info['special'] : '0';
+            $product_current_currency_price = $this->currency->format($this->tax->calculate($mouseOverPrice_product_info['price'], $mouseOverPrice_product_info['tax_class_id'], $this->config->get('config_tax')), '', '', false);
+            $product_current_currency_special = (isset($mouseOverPrice_product_info['special']) ? $this->currency->format($this->tax->calculate($mouseOverPrice_product_info['special'], $mouseOverPrice_product_info['tax_class_id'], $this->config->get('config_tax')), '', '', false) : 0);
+            
+
 
             $this->data['mouseOverPrice'] = "
                                             /* -- mouseOverPrice -- */
@@ -719,8 +725,8 @@ class ControllerModuleRetargeting extends Controller {
                                                     $(\"{$this->data['retargeting_mouseOverPrice']}\").mouseover(function(){
                                                         if (typeof _ra.mouseOverAddToCart !== \"undefined\")
                                                             _ra.mouseOverPrice({$mouseOverPrice_product_id}, {
-                                                                                                        'price': {$mouseOverPrice_product_info['price']},
-                                                                                                        'promo': {$mouseOverPrice_product_promo}
+                                                                                                        'price': {$product_current_currency_price},
+                                                                                                        'promo': {$product_current_currency_special}
                                                                                                         }, function() {console.log('mouseOverPrice FIRED')}
                                                             );
                                                     });
@@ -742,7 +748,6 @@ class ControllerModuleRetargeting extends Controller {
         if ($this->data['current_page'] === 'product/product') {
             $mouseOverAddToCart_product_id = $this->request->get['product_id'];
             $mouseOverAddToCart_product_info = $this->model_catalog_product->getProduct($mouseOverAddToCart_product_id);
-            $mouseOverAddToCart_product_promo = isset($mouseOverAddToCart_product_info['promo']) ? : 0;
 
             $this->data['mouseOverAddToCart'] = "
                                                 /* -- mouseOverAddToCart & addToCart -- */
