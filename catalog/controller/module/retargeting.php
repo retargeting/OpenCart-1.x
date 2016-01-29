@@ -803,7 +803,8 @@ class ControllerModuleRetargeting extends Controller {
             $discount_code = isset($this->session->data['retargeting_discount_code']) ? $this->session->data['retargeting_discount_code'] : 0;
             $total_discount_value = 0;
             $shipping_value = 0;
-            $total_order_value = $this->data['order_data']['total'];;
+            $total_order_value = $this->data['order_data']['total'];
+            // to add currency exchange ...
 
             // Based on order id, grab the ordered products
             $order_product_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = '{$this->data['order_id']}'");
@@ -830,11 +831,14 @@ class ControllerModuleRetargeting extends Controller {
             /* -------------------------------------- */
             $this->data['saveOrder'] .= "_ra.saveOrderProducts = [";
             for ($i = count($order_product_query->rows) - 1; $i >= 0; $i--) {
+                $product_details = $this->model_catalog_product->getProduct($order_product_query->rows[$i]['product_id']);
+                $product_current_currency_price = $this->currency->format($this->tax->calculate($product_details['price'], $product_details['tax_class_id'], $this->config->get('config_tax')), '', '', false);
+                if (isset($product_details['special'])) $product_current_currency_price = $this->currency->format($this->tax->calculate($product_details['special'], $product_details['tax_class_id'], $this->config->get('config_tax')), '', '', false);
                 if ($i == 0) {
                     $this->data['saveOrder'] .= "{
                                                 'id': {$order_product_query->rows[$i]['product_id']},
                                                 'quantity': {$order_product_query->rows[$i]['quantity']},
-                                                'price': {$order_product_query->rows[$i]['price']},
+                                                'price': {$product_current_currency_price},
                                                 'variation_code': ''
                                                 }";
                     break;
@@ -842,7 +846,7 @@ class ControllerModuleRetargeting extends Controller {
                 $this->data['saveOrder'] .= "{
                                             'id': {$order_product_query->rows[$i]['product_id']},
                                             'quantity': {$order_product_query->rows[$i]['quantity']},
-                                            'price': {$order_product_query->rows[$i]['price']},
+                                            'price': {$product_current_currency_price},
                                             'variation_code': ''
                                             },";
             }
@@ -875,10 +879,13 @@ class ControllerModuleRetargeting extends Controller {
 
                 $orderProducts = array();
                 foreach($order_product_query->rows as $orderedProduct) {
+                    $product_details = $this->model_catalog_product->getProduct($orderedProduct['product_id']);
+                    $product_current_currency_price = $this->currency->format($this->tax->calculate($product_details['price'], $product_details['tax_class_id'], $this->config->get('config_tax')), '', '', false);
+                    if (isset($product_details['special'])) $product_current_currency_price = $this->currency->format($this->tax->calculate($product_details['special'], $product_details['tax_class_id'], $this->config->get('config_tax')), '', '', false);
                     $orderProducts[] = array(
                         'id' => $orderedProduct['product_id'],
                         'quantity'=> $orderedProduct['quantity'],
-                        'price'=> $orderedProduct['price'],
+                        'price'=> $product_current_currency_price,
                         'variation_code'=> ''
                     );
                 }
