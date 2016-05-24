@@ -552,7 +552,12 @@ class ControllerModuleRetargeting extends Controller {
 
                 } // Close elseif
 
-            } // Close check if product has categories assigned
+            } else {
+                $this->data['sendProduct'] .= "
+                    'category': {'id': -1, 'name': '', 'parent': false},
+                    'category_breadcrumb': []
+                                            ";
+            }// Close check if product has categories assigned
 
             $this->data['sendProduct'] .= "};"; // Close _ra.sendProductInfo
             $this->data['sendProduct'] .= "
