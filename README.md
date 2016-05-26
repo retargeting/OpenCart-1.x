@@ -1,12 +1,14 @@
-# Retargeting Module for OpenCart 1.5.6 #
+# Retargeting v3 Module for OpenCart 1.5.6 #
 
-### Active, dar nefunctionale cu v2 ###
+### Deprecated ###
 * mouseOverPrice
 * mouseOverAddToCart
   
-### Functii care nu au fost implementate ###
+### Partially implemented ###
 * setVariation
+
+### Not implemented ###
 * likeFacebook
   
-### In asteptare ###
-* implementare REST API
+### Remaining API capabilities in work ###
+* SaveOrder REST API
