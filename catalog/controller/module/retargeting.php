@@ -539,8 +539,8 @@ class ControllerModuleRetargeting extends Controller {
                 if (isset($product_cat_details['parent_id']) && ($product_cat_details['parent_id'] == 0)) {
 
                     $this->data['sendProduct'] .= "
-                                            'category': {'id': {$product_cat_details['category_id']}, 'name': '{$product_cat_details['name']}', 'parent': false},
-                                            'category_breadcrumb': []
+                                            'category': [{'id': {$product_cat_details['category_id']}, 'name': '{$product_cat_details['name']}', 'parent': false,
+                                            'category_breadcrumb': []}]
                                             ";
 
                     // Resides in a nested category (child -> go up until parent)
