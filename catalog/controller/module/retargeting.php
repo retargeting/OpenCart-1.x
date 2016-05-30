@@ -515,7 +515,7 @@ class ControllerModuleRetargeting extends Controller {
                                     'inventory': {
                                         'variations': false,
                                         'stock': ". (($product_details['quantity'] > 0) ? 1 : 0) ."
-                                    }
+                                    },
                                     ";
 
             /* Check if the product has a brand assigned */
