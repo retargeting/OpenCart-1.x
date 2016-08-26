@@ -33,7 +33,7 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class='required'>*</span> API Key:
+                            <span class='required'>*</span> Tracking API Key:
                         </td>
                         <td>
                             <input type='text' size='50' name='api_key_field' value='<?php echo $api_key_field; ?>' />
@@ -44,7 +44,7 @@
                     </tr>
                     <tr>
                         <td>
-                            <span class='required'>*</span> Token:
+                            <span class='required'>*</span> REST API Key:
                         </td>
                         <td>
                             <input type='text' size='50' name='api_secret_field' value='<?php echo $api_secret_field; ?>' />
@@ -54,22 +54,11 @@
                         </td>
                     </tr>
 
-                    <!-- API URL -->
-                    <tr>
-                        <td>
-                            <span class='required'>*</span> API URL:
-                        </td>
-                        <td>
-                            <input type='text' size='50' value='<?php echo $shop_url; ?>' disabled />
-                        </td>
-                    </tr>
-
                     <!-- Help text -->
                     <tr>
                         <td colspan='2'>
                             <div class='help'>
-                                The API key is available in your <a href='https://retargeting.biz/admin?action=api_redirect&token=028e36488ab8dd68eaac58e07ef8f9bf' target='_blank'>Retargeting account</a>. <br />
-                                You need to register the <strong>API URL</strong> into your Retargeting account to automatically generate discount codes.
+                                <a href='https://retargeting.biz/admin?action=api_redirect&token=5ac66ac466f3e1ec5e6fe5a040356997' target='_blank'>Click here</a> to get your Tracking &amp; REST API Keys.
                             </div>
                         </td>
                     </tr>
