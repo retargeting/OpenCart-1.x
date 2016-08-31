@@ -507,7 +507,7 @@ class ControllerModuleRetargeting extends Controller {
             $this->data['sendProduct'] .= "
                                     'id': $product_id,
                                     'name': '{$product_details['name']}',
-                                    'url': '{$product_url}',
+                                    'url': '.htmlspecialchars_decode($product_url).',
                                     'img': '{$this->data['shop_url']}image/{$product_details['image']}',
                                     'price': {$product_current_currency_price},
                                     'promo': {$product_current_currency_special},
