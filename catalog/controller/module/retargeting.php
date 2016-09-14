@@ -808,9 +808,8 @@ class ControllerModuleRetargeting extends Controller {
             $discount_code = isset($this->session->data['retargeting_discount_code']) ? $this->session->data['retargeting_discount_code'] : 0;
             $total_discount_value = 0;
             $shipping_value = 0;
-            $total_order_value = $this->data['order_data']['total'];
-            // to add currency exchange ...
-
+            $total_order_value = $this->currency->format($this->tax->calculate($this->data['order_data']['total'], $this->data['order_data']['payment_tax_id'], $this->config->get('config_tax')), '', '', false);
+            
             // Based on order id, grab the ordered products
             $order_product_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = '{$this->data['order_id']}'");
             $this->data['order_product_query'] = $order_product_query;
