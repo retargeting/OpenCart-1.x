@@ -71,11 +71,12 @@ class ControllerModuleRetargeting extends Controller {
                 $output .= "
                                 <product>
                                     <id>{$product['product_id']}</id>
-                                    <stock>{$product['quantity']}</stock>
                                     <price>{$product_current_currency_price}</price>
                                     <promo>{$product_current_currency_special}</promo>
-                                    <url>{$product_url}</url>
-                                    <image>{$product_image_url}</image>
+                                    <inventory>
+                                        <variations>0</variations>
+                                        <stock>{$product['quantity']}</stock>
+                                    </inventory>
                                 </product>
                             ";
             }
@@ -117,7 +118,7 @@ class ControllerModuleRetargeting extends Controller {
          * STEP 3: expose the codes to Retargeting
          * STEP 4: kill the script
          */
-        if (isset($_POST['key']) && ($_POST['key'] === $this->data['api_key_field'])) {
+        if (isset($_GET['key']) && ($_GET['key'] === $this->data['api_key_field'])) {
 
             /* -------------------------------------------------------------
              * STEP 1: check $_POST and validate the API Key
@@ -399,7 +400,7 @@ class ControllerModuleRetargeting extends Controller {
                                                     'id': {$category_id},
                                                     'name': '{$category_info['name']}',
                                                     'parent': {$category_id_parent},
-                                                    'category_breadcrumb': [
+                                                    'breadcrumb': [
                                                     ";
                     break;
                 }
@@ -439,7 +440,7 @@ class ControllerModuleRetargeting extends Controller {
                                                 'id': {$this->data['category_id']},
                                                 'name': '{$this->data['category_info']['name']}',
                                                 'parent': false,
-                                                'category_breadcrumb': []
+                                                'breadcrumb': []
                                                 ";
             }
 
@@ -507,11 +508,14 @@ class ControllerModuleRetargeting extends Controller {
             $this->data['sendProduct'] .= "
                                     'id': $product_id,
                                     'name': '{$product_details['name']}',
-                                    'url': '.htmlspecialchars_decode($product_url).',
+                                    'url': '{$product_url}',
                                     'img': '{$this->data['shop_url']}image/{$product_details['image']}',
                                     'price': {$product_current_currency_price},
                                     'promo': {$product_current_currency_special},
-                                    'stock': ". (($product_details['quantity'] > 0) ? 1 : 0) .",
+                                    'inventory': {
+                                        'variations': false,
+                                        'stock': ". (($product_details['quantity'] > 0) ? 1 : 0) ."
+                                    },
                                     ";
 
             /* Check if the product has a brand assigned */
@@ -535,8 +539,14 @@ class ControllerModuleRetargeting extends Controller {
                 if (isset($product_cat_details['parent_id']) && ($product_cat_details['parent_id'] == 0)) {
 
                     $this->data['sendProduct'] .= "
-                                            'category': {'id': {$product_cat_details['category_id']}, 'name': '{$product_cat_details['name']}', 'parent': false},
-                                            'category_breadcrumb': []
+                                            'category': [
+                                                {
+                                                    'id': {$product_cat_details['category_id']},
+                                                    'name': '{$product_cat_details['name']}',
+                                                    'parent': false,
+                                                    'category_breadcrumb': []
+                                                }
+                                            ]
                                             ";
 
                     // Resides in a nested category (child -> go up until parent)
@@ -546,16 +556,24 @@ class ControllerModuleRetargeting extends Controller {
 
                     // Get the top level category
                     $this->data['sendProduct'] .= "
-                                            'category': {'id': {$product_cat_details['category_id']}, 'name': '{$product_cat_details['name']}', 'parent': {$product_cat_details['parent_id']}},
-                                            'category_breadcrumb': [{'id': {$product_cat_details_parent['category_id']}, 'name': '{$product_cat_details_parent['name']}', 'parent': false}]
+                                            'category': [{
+                                                'id': {$product_cat_details['category_id']},
+                                                'name': '{$product_cat_details['name']}',
+                                                'parent': {$product_cat_details['parent_id']},
+                                                'breadcrumb': [{'id': {$product_cat_details_parent['category_id']}, 'name': '{$product_cat_details_parent['name']}', 'parent': false}]
+                                                }]
                                             ";
 
                 } // Close elseif
 
             } else {
                 $this->data['sendProduct'] .= "
-                    'category': {'id': -1, 'name': '', 'parent': false},
-                    'category_breadcrumb': []
+                    'category': [{
+                        'id': -1,
+                        'name': '',
+                        'parent': false,
+                        'breadcrumb': []
+                        }]
                                             ";
             }// Close check if product has categories assigned
 
@@ -591,6 +609,7 @@ class ControllerModuleRetargeting extends Controller {
                                                     if ( $(this).val() != undefined ) {
                                                         _ra.setVariation({$product_id}, {
                                                             'code': '$(this).val()',
+                                                            'stock': ". (($product_details['quantity'] > 0) ? 1 : 0) .",
                                                             'details': {}
                                                         }, function() {
                                                             console.log('setVariation fired.');
@@ -723,21 +742,23 @@ class ControllerModuleRetargeting extends Controller {
             
 
 
-            $this->data['mouseOverPrice'] = "
-                                            /* -- mouseOverPrice -- */
-                                            jQuery(document).ready(function($) {
-                                                if ($(\"{$this->data['retargeting_mouseOverPrice']}\").length > 0) {
-                                                    $(\"{$this->data['retargeting_mouseOverPrice']}\").mouseover(function(){
-                                                        if (typeof _ra.mouseOverAddToCart !== \"undefined\")
-                                                            _ra.mouseOverPrice({$mouseOverPrice_product_id}, {
-                                                                                                        'price': {$product_current_currency_price},
-                                                                                                        'promo': {$product_current_currency_special}
-                                                                                                        }, function() {console.log('mouseOverPrice FIRED')}
-                                                            );
-                                                    });
-                                                }
-                                            });
-                                            ";
+            // $this->data['mouseOverPrice'] = "
+            //                                 /* -- mouseOverPrice -- */
+            //                                 jQuery(document).ready(function($) {
+            //                                     if ($(\"{$this->data['retargeting_mouseOverPrice']}\").length > 0) {
+            //                                         $(\"{$this->data['retargeting_mouseOverPrice']}\").mouseover(function(){
+            //                                             if (typeof _ra.mouseOverAddToCart !== \"undefined\")
+            //                                                 _ra.mouseOverPrice({$mouseOverPrice_product_id}, {
+            //                                                                                             'price': {$product_current_currency_price},
+            //                                                                                             'promo': {$product_current_currency_special}
+            //                                                                                             }, function() {console.log('mouseOverPrice FIRED')}
+            //                                                 );
+            //                                         });
+            //                                     }
+            //                                 });
+            //                                 ";
+
+            $this->data['mouseOverPrice'] = "";
 
             $this->data['js_output'] .= $this->data['mouseOverPrice'];
         }
@@ -754,23 +775,36 @@ class ControllerModuleRetargeting extends Controller {
             $mouseOverAddToCart_product_id = $this->request->get['product_id'];
             $mouseOverAddToCart_product_info = $this->model_catalog_product->getProduct($mouseOverAddToCart_product_id);
 
+            // $this->data['mouseOverAddToCart'] = "
+            //                                     /* -- mouseOverAddToCart & addToCart -- */
+            //                                     jQuery(document).ready(function($){
+            //                                         if ($(\"{$this->data['retargeting_addToCart']}\").length > 0) {
+            //                                             /* -- mouseOverAddToCart -- */
+            //                                             $(\"{$this->data['retargeting_addToCart']}\").mouseover(function(){
+            //                                                 if (typeof _ra.mouseOverAddToCart !== \"undefined\")
+            //                                                     _ra.mouseOverAddToCart({$mouseOverAddToCart_product_id}, function(){console.log('mouseOverAddToCart FIRED')});
+            //                                             });
+
+            //                                             /* -- addToCart -- */
+            //                                             $(\"{$this->data['retargeting_addToCart']}\").click(function(){
+            //                                                 _ra.addToCart({$mouseOverAddToCart_product_id}, 1, false, function(){console.log('addToCart FIRED!')});
+            //                                             });
+            //                                         }
+            //                                     });
+            //                                     ";
+
             $this->data['mouseOverAddToCart'] = "
-                                                /* -- mouseOverAddToCart & addToCart -- */
+                                                /* --  addToCart -- */
                                                 jQuery(document).ready(function($){
                                                     if ($(\"{$this->data['retargeting_addToCart']}\").length > 0) {
-                                                        /* -- mouseOverAddToCart -- */
-                                                        $(\"{$this->data['retargeting_addToCart']}\").mouseover(function(){
-                                                            if (typeof _ra.mouseOverAddToCart !== \"undefined\")
-                                                                _ra.mouseOverAddToCart({$mouseOverAddToCart_product_id}, function(){console.log('mouseOverAddToCart FIRED')});
-                                                        });
-
                                                         /* -- addToCart -- */
                                                         $(\"{$this->data['retargeting_addToCart']}\").click(function(){
-                                                            _ra.addToCart({$mouseOverAddToCart_product_id}, false, function(){console.log('addToCart FIRED!')});
+                                                            _ra.addToCart({$mouseOverAddToCart_product_id}, 1, false, function(){console.log('addToCart FIRED!')});
                                                         });
                                                     }
                                                 });
                                                 ";
+
 
             $this->data['js_output'] .= $this->data['mouseOverAddToCart'];
         }
@@ -808,8 +842,10 @@ class ControllerModuleRetargeting extends Controller {
             $discount_code = isset($this->session->data['retargeting_discount_code']) ? $this->session->data['retargeting_discount_code'] : 0;
             $total_discount_value = 0;
             $shipping_value = 0;
+
             $total_order_value = $this->currency->format($this->tax->calculate($this->data['order_data']['total'], $this->data['order_data']['payment_tax_id'], $this->config->get('config_tax')), '', '', false);
-            
+            // to add currency exchange ...
+
             // Based on order id, grab the ordered products
             $order_product_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_product` WHERE `order_id` = '{$this->data['order_id']}'");
             $this->data['order_product_query'] = $order_product_query;
@@ -817,6 +853,7 @@ class ControllerModuleRetargeting extends Controller {
             $this->data['saveOrder'] = "
                                         var _ra = _ra || {};
                                         _ra.saveOrderInfo = {
+                                            'debug': true,
                                             'order_no': {$order_no},
                                             'lastname': '{$lastname}',
                                             'firstname': '{$firstname}',
@@ -828,6 +865,8 @@ class ControllerModuleRetargeting extends Controller {
                                             'discount_code': '{$discount_code}',
                                             'discount': {$total_discount_value},
                                             'shipping': {$shipping_value},
+                                            'rebates': 0,
+                                            'fees': 0,
                                             'total': {$total_order_value}
                                         };
                                         ";
@@ -933,6 +972,7 @@ class ControllerModuleRetargeting extends Controller {
 
         /* DONE
          * 15. checkoutIds
+         * 16. setCartUrl
          *
          * product id
          */
@@ -958,9 +998,22 @@ class ControllerModuleRetargeting extends Controller {
                                             if (_ra.ready !== undefined) {
                                                 _ra.checkoutIds(_ra.checkoutIdsInfo);
                                             };
-                                            ";
+                                            ";                                           
+
+
+            $this->data['setCartUrl'] = "
+                                        /* -- setCartUrl -- */
+                                        var _ra = _ra || {};
+                                        _ra.setCartUrlInfo = {
+                                            'url': window.location.toString()
+                                        };
+
+                                        if (_ra.ready !== undefined) {
+                                            _ra.setCartUrl(_ra.setCartUrlInfo.url);
+                                        }";
 
             $this->data['js_output'] .= $this->data['checkoutIds'];
+            $this->data['js_output'] .= $this->data['setCartUrl'];
 
             /* saveOrder improvement: allow data exposure */
             $this->session->data['RTG_ID']++;
