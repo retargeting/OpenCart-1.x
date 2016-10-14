@@ -118,7 +118,7 @@ class ControllerModuleRetargeting extends Controller {
          * STEP 3: expose the codes to Retargeting
          * STEP 4: kill the script
          */
-        if (isset($_POST['key']) && ($_POST['key'] === $this->data['api_key_field'])) {
+        if (isset($_GET['key']) && ($_GET['key'] === $this->data['api_key_field'])) {
 
             /* -------------------------------------------------------------
              * STEP 1: check $_POST and validate the API Key
@@ -508,7 +508,7 @@ class ControllerModuleRetargeting extends Controller {
             $this->data['sendProduct'] .= "
                                     'id': $product_id,
                                     'name': '{$product_details['name']}',
-                                    'url': '".htmlspecialchars_decode($product_url)."',
+                                    'url': '{$product_url}',
                                     'img': '{$this->data['shop_url']}image/{$product_details['image']}',
                                     'price': {$product_current_currency_price},
                                     'promo': {$product_current_currency_special},
@@ -539,8 +539,14 @@ class ControllerModuleRetargeting extends Controller {
                 if (isset($product_cat_details['parent_id']) && ($product_cat_details['parent_id'] == 0)) {
 
                     $this->data['sendProduct'] .= "
-                                            'category': [{'id': {$product_cat_details['category_id']}, 'name': '{$product_cat_details['name']}', 'parent': false,
-                                            'breadcrumb': []}]
+                                            'category': [
+                                                {
+                                                    'id': {$product_cat_details['category_id']},
+                                                    'name': '{$product_cat_details['name']}',
+                                                    'parent': false,
+                                                    'category_breadcrumb': []
+                                                }
+                                            ]
                                             ";
 
                     // Resides in a nested category (child -> go up until parent)
@@ -836,7 +842,8 @@ class ControllerModuleRetargeting extends Controller {
             $discount_code = isset($this->session->data['retargeting_discount_code']) ? $this->session->data['retargeting_discount_code'] : 0;
             $total_discount_value = 0;
             $shipping_value = 0;
-            $total_order_value = $this->data['order_data']['total'];
+
+            $total_order_value = $this->currency->format($this->tax->calculate($this->data['order_data']['total'], $this->data['order_data']['payment_tax_id'], $this->config->get('config_tax')), '', '', false);
             // to add currency exchange ...
 
             // Based on order id, grab the ordered products
@@ -846,6 +853,7 @@ class ControllerModuleRetargeting extends Controller {
             $this->data['saveOrder'] = "
                                         var _ra = _ra || {};
                                         _ra.saveOrderInfo = {
+                                            'debug': true,
                                             'order_no': {$order_no},
                                             'lastname': '{$lastname}',
                                             'firstname': '{$firstname}',
