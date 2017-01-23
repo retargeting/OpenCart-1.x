@@ -881,7 +881,7 @@ class ControllerModuleRetargeting extends Controller {
             /*
             * REST API Save Order
             */
-            if ($this->data['api_key_field'] && $this->data['api_key_field'] != '' && $this->data['api_secret_field'] && $this->data['api_secret_field'] != '') {
+            if ($this->data['api_secret_field'] && $this->data['api_secret_field'] != '') {
 
                 $orderInfo = array('order_no' => $order_no,
                     'lastname' => $lastname,
@@ -906,7 +906,7 @@ class ControllerModuleRetargeting extends Controller {
                         'price' => $product_current_currency_price,
                         'variation_code' => '');
                 }
-                $orderClient = new Retargeting_REST_API_Client($this->data['api_key_field'], $this->data['api_secret_field']);
+                $orderClient = new Retargeting_REST_API_Client($this->data['api_secret_field']);
                 $orderClient->setResponseFormat("json");
                 $orderClient->setDecoding(false);
                 $response = $orderClient->order->save($orderInfo, $orderProducts);
