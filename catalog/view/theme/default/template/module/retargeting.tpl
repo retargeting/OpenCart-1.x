@@ -5,8 +5,9 @@
 
     MODULE: Retargeting
 -->
-<!-- START RETARGETING MODULE 04/11/2016 -->
+<!-- START RETARGETING MODULE-->
 <script>
+// Retargeting 49.54.53.52+
     (function(){
         ra_key = "<?php echo $api_key_field; ?>";
         ra_params = {
