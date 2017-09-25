@@ -971,7 +971,9 @@ class ControllerModuleRetargeting extends Controller {
             'checkout/ajaxcheckout',
             'checkout/quickcheckout',
             'checkout/onepagecheckout',
-            'supercheckout/supercheckout');
+            'supercheckout/supercheckout',
+            'quickcheckout/cart'
+        );
         if ((in_array($this->data['current_page'], $checkout_modules) && $this->data['cart_products']) || ($this->data['current_page'] === 'checkout/cart' && $this->data['cart_products'])) {
             $cart_products = $this->cart->getProducts(); // Use this instead of session
             $this->data['checkoutIds'] = "
