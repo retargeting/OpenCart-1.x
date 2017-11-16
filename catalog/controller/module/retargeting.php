@@ -501,7 +501,7 @@ class ControllerModuleRetargeting extends Controller {
             $product_categories = $product_categories->rows; // Get all the subcategories for this product. Reorder its numerical indexes to ease the breadcrumb logic
             $product_current_currency_price = $this->currency->format($this->tax->calculate($product_details['price'], $product_details['tax_class_id'], $this->config->get('config_tax')), '', '', false);
             $product_current_currency_special = (isset($product_details['special']) ? $this->currency->format($this->tax->calculate($product_details['special'], $product_details['tax_class_id'], $this->config->get('config_tax')), '', '', false) : 0);
-            $encoded_product_name = htmlspecialchars($product_details['name']);
+            $decoded_product_name = htmlspecialchars_decode($product_details['name']);
 
             /* Send the base info */
             $this->data['sendProduct'] = "
@@ -509,7 +509,7 @@ class ControllerModuleRetargeting extends Controller {
                                     ";
             $this->data['sendProduct'] .= "
                                     'id': $product_id,
-                                    'name': '{$encoded_product_name}',
+                                    'name': '{$decoded_product_name}',
                                     'url': '" . htmlspecialchars_decode($product_url) . "',
                                     'img': '{$this->data['shop_url']}image/{$product_details['image']}',
                                     'price': {$product_current_currency_price},
