@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+    <id>Adds Retargeting Recommendation Engine Thank You Top</id>
+    <version>1.00</version>
+    <vqmver>2.6.0</vqmver>
+    <author>Carol Pelu</author>
+
+    <file name="catalog/view/theme/*/template/common/success.tpl">
+        <operation>
+            <search position="before">
+                <![CDATA[
+                    <?php echo $content_top; ?>
+                ]]>
+            </search>
+            <add>
+                <![CDATA[
+                    <div id="retargeting-recommeng-thank-you-page"><img src="https://nastyhobbit.org/data/media/3/happy-panda.jpg"></div>
+                ]]>
+            </add>
+        </operation>
+    </file>
+</modification>

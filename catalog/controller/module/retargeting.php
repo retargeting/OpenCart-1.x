@@ -392,10 +392,10 @@ class ControllerModuleRetargeting extends Controller {
                 for ($i = count($this->data['current_category']) - 1; $i > 0; $i--) {
                     $category_id = $this->data['current_category'][$i];
                     $category_info = $this->model_catalog_category->getCategory($category_id);
-                    $encoded_category_name = htmlspecialchars($category_info['name']);
+                    $decoded_category_name = htmlspecialchars_decode($category_info['name']);
                     $this->data['sendCategory'] .= "
                                                     'id': {$category_id},
-                                                    'name': '{$encoded_category_name}',
+                                                    'name': '{$decoded_category_name}',
                                                     'parent': {$category_id_parent},
                                                     'breadcrumb': [
                                                     ";
@@ -407,22 +407,22 @@ class ControllerModuleRetargeting extends Controller {
                 for ($i = count($this->data['current_category']) - 1; $i >= 0; $i--) {
                     $category_id = $this->data['current_category'][$i];
                     $category_info = $this->model_catalog_category->getCategory($category_id);
-                    $encoded_category_parent_name = htmlspecialchars($category_info_parent['name']);
+                    $decoded_category_parent_name = htmlspecialchars_decode($category_info_parent['name']);
 
                     if ($i === 0) {
                         $this->data['sendCategory'] .= "{
                                                         'id': {$category_id_parent},
-                                                        'name': '{$encoded_category_parent_name}',
+                                                        'name': '{$decoded_category_parent_name}',
                                                         'parent': false
                                                         }
                                                         ";
                         break;
                     }
                     
-                    $encoded_category_name = htmlspecialchars($category_info['name']);
+                    $decoded_category_name = htmlspecialchars_decode($category_info['name']);
                     $this->data['sendCategory'] .= "{
                                                     'id': {$category_id},
-                                                    'name': '{$encoded_category_name}',
+                                                    'name': '{$decoded_category_name}',
                                                     'parent': {$category_id_parent}
                                                     },
                                                     ";
@@ -434,12 +434,12 @@ class ControllerModuleRetargeting extends Controller {
               } else {
                    $this->data['category_id'] = $this->data['current_category'][0];
                    $this->data['category_info'] = $this->model_catalog_category->getCategory($this->data['category_id']);
-                   $encoded_data_category_name = htmlspecialchars($this->data['category_info']['name']);
+                   $decoded_data_category_name = htmlspecialchars_decode($this->data['category_info']['name']);
                    
                    
                    $this->data['sendCategory'] .= "
                                                    'id': {$this->data['category_id']},
-                                                   'name': '{$encoded_data_category_name}',
+                                                   'name': '{$decoded_data_category_name}',
                                                    'parent': false,
                                                    'breadcrumb': []
                                                    ";
@@ -470,11 +470,11 @@ class ControllerModuleRetargeting extends Controller {
             if (isset($this->request->get['manufacturer_id']) && !empty($this->request->get['manufacturer_id'])) {
                 $this->data['brand_id'] = $this->request->get['manufacturer_id'];
                 $this->data['brand_name'] = $this->model_catalog_manufacturer->getManufacturer($this->request->get['manufacturer_id']);
-                $encoded_brand_name = htmlspecialchars($this->data['brand_name']['name']);
+                $decoded_brand_name = htmlspecialchars_decode($this->data['brand_name']['name']);
                 $this->data['sendBrand'] = "var _ra = _ra || {};
                                             _ra.sendBrandInfo = {
                                                                 'id': {$this->data['brand_id']},
-                                                                'name': '{$encoded_brand_name}'
+                                                                'name': '{$decoded_brand_name}'
                                                                 };
                                                                 
                                                                 if (_ra.ready !== undefined) {

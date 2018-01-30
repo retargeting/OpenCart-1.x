@@ -5,7 +5,7 @@
 
     MODULE: Retargeting
 -->
-<!-- START RETARGETING MODULE-->
+<!-- START RETARGETING EXTENSION-->
 <script>
 
     (function(){
@@ -21,4 +21,4 @@
     ();
     <?php echo $js_output; ?>
 </script>
-<!-- END RETARGETING MODULE 49.54.53.52+ -->
+<!-- END RETARGETING EXTENSION v1.5.6.0 -->
