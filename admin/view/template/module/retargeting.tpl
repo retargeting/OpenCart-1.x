@@ -58,7 +58,7 @@
                     <tr>
                         <td colspan='2'>
                             <div class='help'>
-                                <a href='https://retargeting.biz/admin?action=api_redirect&token=5ac66ac466f3e1ec5e6fe5a040356997' target='_blank' rel="noopener noreferrer">Click here</a> to get your Tracking &amp; REST API Keys.
+                                <a href='https://retargeting.biz/' target='_blank' rel="noopener noreferrer">Click here</a> to get your Tracking &amp; REST API Keys.
                             </div>
                         </td>
                     </tr>
@@ -74,7 +74,7 @@
                         </td>
                         <td>
                             <div class='help'>
-                                Your OpenCart theme may alterate certain CSS and HTML elements that are important for Retargeting. Below you can adjust the CSS selectors which the Retargeting App will be monitoring. A detailed documentation is available at <a href='https://retargeting.biz/admin?action=api_redirect&token=5ac66ac466f3e1ec5e6fe5a040356997' target='_blank' rel="noopener noreferrer">Retargeting: fine tuning</a>. Please use only single quotes. Example: input[type='text']
+                                Your OpenCart theme may alterate certain CSS and HTML elements that are important for Retargeting. Below you can adjust the CSS selectors which the Retargeting App will be monitoring. Please use only single quotes. Example: input[type='text']
                             </div>
                         </td>
                     </tr>

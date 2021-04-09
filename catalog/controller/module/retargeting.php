@@ -498,10 +498,10 @@ class ControllerModuleRetargeting extends Controller {
                 for ($i = count($this->data['current_category']) - 1; $i > 0; $i--) {
                     $category_id = $this->data['current_category'][$i];
                     $category_info = $this->model_catalog_category->getCategory($category_id);
-                    $encoded_category_name = htmlspecialchars($category_info['name']);
+                    $decoded_category_name = htmlspecialchars_decode($category_info['name']);
                     $this->data['sendCategory'] .= "
                                                     'id': {$category_id},
-                                                    'name': '{$encoded_category_name}',
+                                                    'name': '{$decoded_category_name}',
                                                     'parent': {$category_id_parent},
                                                     'breadcrumb': [
                                                     ";
@@ -513,22 +513,22 @@ class ControllerModuleRetargeting extends Controller {
                 for ($i = count($this->data['current_category']) - 1; $i >= 0; $i--) {
                     $category_id = $this->data['current_category'][$i];
                     $category_info = $this->model_catalog_category->getCategory($category_id);
-                    $encoded_category_parent_name = htmlspecialchars($category_info_parent['name']);
+                    $decoded_category_parent_name = htmlspecialchars_decode($category_info_parent['name']);
 
                     if ($i === 0) {
                         $this->data['sendCategory'] .= "{
                                                         'id': {$category_id_parent},
-                                                        'name': '{$encoded_category_parent_name}',
+                                                        'name': '{$decoded_category_parent_name}',
                                                         'parent': false
                                                         }
                                                         ";
                         break;
                     }
                     
-                    $encoded_category_name = htmlspecialchars($category_info['name']);
+                    $decoded_category_name = htmlspecialchars_decode($category_info['name']);
                     $this->data['sendCategory'] .= "{
                                                     'id': {$category_id},
-                                                    'name': '{$encoded_category_name}',
+                                                    'name': '{$decoded_category_name}',
                                                     'parent': {$category_id_parent}
                                                     },
                                                     ";
@@ -540,12 +540,12 @@ class ControllerModuleRetargeting extends Controller {
               } else {
                    $this->data['category_id'] = $this->data['current_category'][0];
                    $this->data['category_info'] = $this->model_catalog_category->getCategory($this->data['category_id']);
-                   $encoded_data_category_name = htmlspecialchars($this->data['category_info']['name']);
+                   $decoded_data_category_name = htmlspecialchars_decode($this->data['category_info']['name']);
                    
                    
                    $this->data['sendCategory'] .= "
                                                    'id': {$this->data['category_id']},
-                                                   'name': '{$encoded_data_category_name}',
+                                                   'name': '{$decoded_data_category_name}',
                                                    'parent': false,
                                                    'breadcrumb': []
                                                    ";
@@ -576,11 +576,11 @@ class ControllerModuleRetargeting extends Controller {
             if (isset($this->request->get['manufacturer_id']) && !empty($this->request->get['manufacturer_id'])) {
                 $this->data['brand_id'] = $this->request->get['manufacturer_id'];
                 $this->data['brand_name'] = $this->model_catalog_manufacturer->getManufacturer($this->request->get['manufacturer_id']);
-                $encoded_brand_name = htmlspecialchars($this->data['brand_name']['name']);
+                $decoded_brand_name = htmlspecialchars_decode($this->data['brand_name']['name']);
                 $this->data['sendBrand'] = "var _ra = _ra || {};
                                             _ra.sendBrandInfo = {
                                                                 'id': {$this->data['brand_id']},
-                                                                'name': '{$encoded_brand_name}'
+                                                                'name': '{$decoded_brand_name}'
                                                                 };
                                                                 
                                                                 if (_ra.ready !== undefined) {
@@ -607,7 +607,6 @@ class ControllerModuleRetargeting extends Controller {
             $product_categories = $product_categories->rows; // Get all the subcategories for this product. Reorder its numerical indexes to ease the breadcrumb logic
             $product_current_currency_price = $this->currency->format($this->tax->calculate($product_details['price'], $product_details['tax_class_id'], $this->config->get('config_tax')), '', '', false);
             $product_current_currency_special = (isset($product_details['special']) ? $this->currency->format($this->tax->calculate($product_details['special'], $product_details['tax_class_id'], $this->config->get('config_tax')), '', '', false) : 0);
-            $decoded_product_name = htmlspecialchars_decode($product_details['name']);
 
             /* Send the base info */
             $this->data['sendProduct'] = "
@@ -615,7 +614,7 @@ class ControllerModuleRetargeting extends Controller {
                                     ";
             $this->data['sendProduct'] .= "
                                     'id': $product_id,
-                                    'name': '{$decoded_product_name}',
+                                    'name': '" . htmlspecialchars($product_details['name'], ENT_QUOTES) . "',
                                     'url': '" . htmlspecialchars_decode($product_url) . "',
                                     'img': '{$this->data['shop_url']}image/{$product_details['image']}',
                                     'price': {$product_current_currency_price},
