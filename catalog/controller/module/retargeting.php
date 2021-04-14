@@ -112,9 +112,9 @@ class ControllerModuleRetargeting extends Controller {
                                 break;
                             }
                             if (isset($this->request->server['HTTPS']) && (($this->request->server['HTTPS'] == 'on') || ($this->request->server['HTTPS'] == '1'))) {
-                                $NewList[$val] = HTTPS_SERVER . 'image/' . $product['image'];
+                                $NewList[$val] = HTTPS_SERVER . 'image/' . urlencode($product['image']);
                             } else {
-                                $NewList[$val] = HTTP_SERVER . 'image/' . $product['image'];
+                                $NewList[$val] = HTTP_SERVER . 'image/' . urlencode($product['image']);
                             }
                         break;
                         case 'product url':
