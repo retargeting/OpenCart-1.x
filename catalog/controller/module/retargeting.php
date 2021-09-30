@@ -70,8 +70,7 @@ class ControllerModuleRetargeting extends Controller {
          *             Products feed
          * --------------------------------------
          **/
-        /* JSON Request intercepted, kill everything else and output */
-        if (isset($_GET['json']) && $_GET['json'] === 'retargeting') {
+        if (isset($_GET['csv']) && $_GET['csv'] === 'retargeting') {
 
             /* Modify the header */
             header("Content-Disposition: attachment; filename=retargeting.csv; charset=utf-8");
@@ -97,11 +96,12 @@ class ControllerModuleRetargeting extends Controller {
             /* Pull ALL products from the database */
             $products = $this->model_catalog_product->getProducts();
             $retargetingFeed = array();
-            $extrastring = '';
+            $extrastring = [];
             $add = true;
             foreach ($products as $product) {
 
                 $NewList = array();
+                $extrastring = [];
 
                 foreach($get as $key=>$val){
 
@@ -116,9 +116,15 @@ class ControllerModuleRetargeting extends Controller {
                             } else {
                                 $NewList[$val] = HTTP_SERVER . 'image/' . $product['image'];
                             }
+                            $NewList[$val] = str_replace(
+                                ['amp;'," "," ","","|","–"],
+                                ['',"%20","%C2%A0","%C2%96","%7C","%E2%80%93"],$NewList[$val]);
                         break;
                         case 'product url':
                             $NewList[$val] = $this->url->link('product/product', 'product_id=' . $product['product_id']);
+                            $NewList[$val] = str_replace(
+                                ['amp;'," "," ","","|","–"],
+                                ['',"%20","%C2%A0","%C2%96","%7C","%E2%80%93"],$NewList[$val]);
                         break;
 
                         case 'stock':
@@ -158,27 +164,30 @@ class ControllerModuleRetargeting extends Controller {
                                 $path = $this->getPath($category['category_id']);
 
                                 if ($path) {
-                                    $string = '';
+                                    $name = '';
 
                                     foreach (explode('_', $path) as $path_id) {
                                         $category_info = $this->model_catalog_category->getCategory($path_id);
 
                                         if ($category_info) {
-                                            if ($string=='') {
-                                                $string = $category_info['name'];
-                                                $extrastring = $category_info['name'];
+                                            if ($name=='') {
+                                                $name = $category_info['name'];
+                                                $id = $category_info['category_id'];
                                             } else {
-                                                $extrastring .= ' | ' . $category_info['name'];
+                                                $extrastring[$category_info['category_id']] = $category_info['name'];
                                             }
                                         }
                                     }
                                 }
                             }
-                            $NewList[$val] = $string;
+                            $NewList[$val] = $name;
+                            $extrastring[$id] = $name;
                         break;
 
                         case 'extra data':
-                            $NewList[$val] = '[]';
+                            $NewList[$val] = json_encode([
+                                'categories' => $extrastring
+                            ], JSON_UNESCAPED_SLASHES);
                         break;
 
                         default:
@@ -193,6 +202,45 @@ class ControllerModuleRetargeting extends Controller {
             }
             
             fclose($outstream);
+            die();
+        }
+        /* JSON Request intercepted, kill everything else and output */
+        if (isset($_GET['json']) && $_GET['json'] === 'retargeting') {
+
+            /* Modify the header */
+            header('Content-Type: application/json');
+
+            /* Pull ALL products from the database */
+            $products = $this->model_catalog_product->getProducts();
+            $retargetingFeed = array();
+            foreach ($products as $product) {
+              $retargetingFeed[] = array (
+                'id'=> $product['product_id'],
+                'price' => round(
+                  $this->tax->calculate(
+                    $product['price'],
+                    $product['tax_class_id'],
+                    $this->config->get('config_tax')
+                  ), 2),
+                'promo' => (
+                  isset($product['special']) ? round (
+                    $this->tax->calculate(
+                      $product['special'],
+                      $product['tax_class_id'],
+                      $this->config->get('config_tax')
+                    ), 2)
+                    : 0),
+                'promo_price_end_date' => null,
+                'inventory' => array(
+                  'variations' => false,
+                  'stock' => (($product['quantity'] > 0) ? 1 : 0)
+                ),
+                'user_groups' => false,
+                'product_availability' => null                  
+              );
+            }
+            
+            echo json_encode($retargetingFeed);
             die();
           }
             
