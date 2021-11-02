@@ -31,6 +31,17 @@ class ControllerModuleRetargeting extends Controller {
 		}
 	}
 
+    public function fixURL($url)
+    {
+        $newURL = explode("/",$url);
+        foreach ($newURL as $k=>$v ){
+            if ($k > 2) {
+                $newURL[$k] = urlencode($v);
+            }
+        }
+        return implode("/",$newURL);
+    }
+
     public function index() {
 
         /* Load the language file */
@@ -116,15 +127,11 @@ class ControllerModuleRetargeting extends Controller {
                             } else {
                                 $NewList[$val] = HTTP_SERVER . 'image/' . $product['image'];
                             }
-                            $NewList[$val] = str_replace(
-                                ['amp;'," "," ","","|","–"],
-                                ['',"%20","%C2%A0","%C2%96","%7C","%E2%80%93"],$NewList[$val]);
+                            $NewList[$val] = $this->fixURL($NewList[$val]);
                         break;
                         case 'product url':
                             $NewList[$val] = $this->url->link('product/product', 'product_id=' . $product['product_id']);
-                            $NewList[$val] = str_replace(
-                                ['amp;'," "," ","","|","–"],
-                                ['',"%20","%C2%A0","%C2%96","%7C","%E2%80%93"],$NewList[$val]);
+                            $NewList[$val] = $this->fixURL($NewList[$val]);
                         break;
 
                         case 'stock':
