@@ -35,26 +35,29 @@ class ControllerModuleRetargeting extends Controller {
 
     public function fixURL($url)
     {
-        $new_URL = explode("?", $url, 2);
-        $newURL = explode("/",$new_URL[0]);
-
-        if ($this->checkHTTP === null) {
-            $this->checkHTTP = !empty(array_intersect(["https:","http:"], $newURL));
-        } 
-        
-        foreach ($newURL as $k=>$v ){
-            if (!$this->checkHTTP || $this->checkHTTP && $k > 2) {
-                $newURL[$k] = urlencode($v);
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            $new_URL = explode("?", $url, 2);
+            $newURL = explode("/",$new_URL[0]);
+    
+            if ($this->checkHTTP === null) {
+                $this->checkHTTP = !empty(array_intersect(["https:","http:"], $newURL));
+            } 
+            
+            foreach ($newURL as $k=>$v ){
+                if (!$this->checkHTTP || $this->checkHTTP && $k > 2) {
+                    $newURL[$k] = urlencode($v);
+                }
+            }
+    
+            if (isset($new_URL[1])) {
+                $new_URL[0] = implode("/",$newURL);
+                $new_URL[1] = str_replace("&amp;","&",$new_URL[1]);
+                return implode("?", $new_URL);
+            } else {
+                return implode("/",$newURL);
             }
         }
-
-        if (isset($new_URL[1])) {
-            $new_URL[0] = implode("/",$newURL);
-            $new_URL[1] = str_replace("&amp;","&",$new_URL[1]);
-            return implode("?", $new_URL);
-        } else {
-            return implode("/",$newURL);
-        }
+        return $url;
     }
 
     public function index() {
@@ -100,7 +103,7 @@ class ControllerModuleRetargeting extends Controller {
 
             /* Modify the header */
             header("Content-Disposition: attachment; filename=retargeting.csv; charset=utf-8");
-            header("Content-type: text/csv");
+            header("Content-type: text/csv; charset=utf-8");
 
             $outstream = fopen('php://output', 'w');
 
@@ -231,7 +234,7 @@ class ControllerModuleRetargeting extends Controller {
 
             /* Modify the header */
             header("Content-Disposition: attachment; filename=retargeting.csv; charset=utf-8");
-            header("Content-type: text/csv");
+            header("Content-type: text/csv; charset=utf-8");
 
             $outstream = fopen('php://output', 'w');
 
