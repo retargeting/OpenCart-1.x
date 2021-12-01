@@ -31,6 +31,165 @@ class ControllerModuleRetargeting extends Controller {
 		}
 	}
 
+    private $checkHTTP = null;
+
+    public function fixURL($url)
+    {
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            $new_URL = explode("?", $url, 2);
+            $newURL = explode("/",$new_URL[0]);
+    
+            if ($this->checkHTTP === null) {
+                $this->checkHTTP = !empty(array_intersect(["https:","http:"], $newURL));
+            } 
+            
+            foreach ($newURL as $k=>$v ){
+                if (!$this->checkHTTP || $this->checkHTTP && $k > 2) {
+                    $newURL[$k] = urlencode($v);
+                }
+            }
+    
+            if (isset($new_URL[1])) {
+                $new_URL[0] = implode("/",$newURL);
+                $new_URL[1] = str_replace("&amp;","&",$new_URL[1]);
+                return implode("?", $new_URL);
+            } else {
+                return implode("/",$newURL);
+            }
+        }
+        return $url;
+    }
+    public function getFeed(){
+        /* Modify the header */
+        header("Content-Disposition: attachment; filename=retargeting.csv;");
+        header("Content-type: text/csv; charset=utf-8");
+
+        $outstream = fopen('php://output', 'w');
+
+        $get = array(
+            'product_id'=>'product id',
+            'name'=>'product name',
+            'url'=>'product url',
+            'image'=>'image url',
+            'quantity'=>'stock',
+            'price'=>'price',
+            'special'=>'sale price',
+            'brand'=>'brand',
+            'getProductCategories'=>'category',
+            'extra'=>'extra data'
+        );
+
+        fputcsv($outstream, $get, ',', '"');
+
+        /* Pull ALL products from the database */
+        $products = $this->model_catalog_product->getProducts();
+        $retargetingFeed = array();
+        $extrastring = [];
+        $add = true;
+        foreach ($products as $product) {
+
+            $NewList = array();
+            $extrastring = [];
+
+            foreach($get as $key=>$val){
+
+                switch($val) {
+                    case 'image url':
+                        if($product['image']==''){
+                            $add = false;
+                            break;
+                        }
+                        if (isset($this->request->server['HTTPS']) && (($this->request->server['HTTPS'] == 'on') || ($this->request->server['HTTPS'] == '1'))) {
+                            $NewList[$val] = HTTPS_SERVER . 'image/' . $product['image'];
+                        } else {
+                            $NewList[$val] = HTTP_SERVER . 'image/' . $product['image'];
+                        }
+                        $NewList[$val] = $this->fixURL($NewList[$val]);
+                    break;
+                    case 'product url':
+                        $NewList[$val] = $this->url->link('product/product', 'product_id=' . $product['product_id']);
+                        $NewList[$val] = $this->fixURL($NewList[$val]);
+                    break;
+
+                    case 'stock':
+                        $NewList[$val] = ((int) $product[$key] > 0) ? 1 : 0;
+                    break;
+
+                    case 'price':
+                        if((int) $product['price'] == 0){
+                            $add = false;
+                            break;
+                        }
+                        $NewList[$val] = round(
+                            $this->tax->calculate(
+                              $product['price'],
+                              $product['tax_class_id'],
+                              $this->config->get('config_tax')
+                            ), 2);
+                    break;
+
+                    case 'sale price':
+                        if($product[$key] == 0){
+                            $product[$key] = $product['price'];
+                        }
+                        $NewList[$val] = round (
+                            $this->tax->calculate($product[$key], $product['tax_class_id'], $this->config->get('config_tax'))
+                        );
+                    break;
+
+                    case 'brand':
+                        $NewList[$val] =  $product['manufacturer'];
+                    break;
+
+                    case 'category':
+                        $categories = $this->model_catalog_product->getCategories($product['product_id']);
+
+                        foreach ($categories as $category) {
+                            $path = $this->getPath($category['category_id']);
+
+                            if ($path) {
+                                $name = '';
+
+                                foreach (explode('_', $path) as $path_id) {
+                                    $category_info = $this->model_catalog_category->getCategory($path_id);
+
+                                    if ($category_info) {
+                                        if ($name=='') {
+                                            $name = $category_info['name'];
+                                            $id = $category_info['category_id'];
+                                        } else {
+                                            $extrastring[$category_info['category_id']] = $category_info['name'];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        $NewList[$val] = $name;
+                        $extrastring[$id] = $name;
+                    break;
+
+                    case 'extra data':
+                        $NewList[$val] = json_encode([
+                            'categories' => $extrastring
+                        ], JSON_UNESCAPED_SLASHES);
+                    break;
+
+                    default:
+                        $NewList[$val] = $product[$key]; 
+                }
+            }
+            if($add) {
+                fputcsv($outstream, $NewList, ',', '"');
+            }
+
+            $add = true;
+        }
+        
+        fclose($outstream);
+        die();
+
+    }
+
     public function index() {
 
         /* Load the language file */
@@ -70,131 +229,13 @@ class ControllerModuleRetargeting extends Controller {
          *             Products feed
          * --------------------------------------
          **/
+        if (isset($_GET['csv']) && $_GET['csv'] === 'retargeting') {
+            $this->getFeed();
+        }
         /* JSON Request intercepted, kill everything else and output */
         if (isset($_GET['json']) && $_GET['json'] === 'retargeting') {
-
-            /* Modify the header */
-            header("Content-Disposition: attachment; filename=retargeting.csv; charset=utf-8");
-            header("Content-type: text/csv");
-
-            $outstream = fopen('php://output', 'w');
-
-            $get = array(
-                'product_id'=>'product id',
-                'name'=>'product name',
-                'url'=>'product url',
-                'image'=>'image url',
-                'quantity'=>'stock',
-                'price'=>'price',
-                'special'=>'sale price',
-                'brand'=>'brand',
-                'getProductCategories'=>'category',
-                'extra'=>'extra data'
-            );
-
-            fputcsv($outstream, $get, ',', '"');
-
-            /* Pull ALL products from the database */
-            $products = $this->model_catalog_product->getProducts();
-            $retargetingFeed = array();
-            $extrastring = '';
-            $add = true;
-            foreach ($products as $product) {
-
-                $NewList = array();
-
-                foreach($get as $key=>$val){
-
-                    switch($val) {
-                        case 'image url':
-                            if($product['image']==''){
-                                $add = false;
-                                break;
-                            }
-                            if (isset($this->request->server['HTTPS']) && (($this->request->server['HTTPS'] == 'on') || ($this->request->server['HTTPS'] == '1'))) {
-                                $NewList[$val] = HTTPS_SERVER . 'image/' . $product['image'];
-                            } else {
-                                $NewList[$val] = HTTP_SERVER . 'image/' . $product['image'];
-                            }
-                        break;
-                        case 'product url':
-                            $NewList[$val] = $this->url->link('product/product', 'product_id=' . $product['product_id']);
-                        break;
-
-                        case 'stock':
-                            $NewList[$val] = ((int) $product[$key] > 0) ? 1 : 0;
-                        break;
-
-                        case 'price':
-                            if((int) $product['price'] == 0){
-                                $add = false;
-                                break;
-                            }
-                            $NewList[$val] = round(
-                                $this->tax->calculate(
-                                  $product['price'],
-                                  $product['tax_class_id'],
-                                  $this->config->get('config_tax')
-                                ), 2);
-                        break;
-
-                        case 'sale price':
-                            if($product[$key] == 0){
-                                $product[$key] = $product['price'];
-                            }
-                            $NewList[$val] = round (
-                                $this->tax->calculate($product[$key], $product['tax_class_id'], $this->config->get('config_tax'))
-                            );
-                        break;
-
-                        case 'brand':
-                            $NewList[$val] =  $product['manufacturer'];
-                        break;
-
-                        case 'category':
-                            $categories = $this->model_catalog_product->getCategories($product['product_id']);
-
-                            foreach ($categories as $category) {
-                                $path = $this->getPath($category['category_id']);
-
-                                if ($path) {
-                                    $string = '';
-
-                                    foreach (explode('_', $path) as $path_id) {
-                                        $category_info = $this->model_catalog_category->getCategory($path_id);
-
-                                        if ($category_info) {
-                                            if ($string=='') {
-                                                $string = $category_info['name'];
-                                                $extrastring = $category_info['name'];
-                                            } else {
-                                                $extrastring .= ' | ' . $category_info['name'];
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            $NewList[$val] = $string;
-                        break;
-
-                        case 'extra data':
-                            $NewList[$val] = '[]';
-                        break;
-
-                        default:
-                            $NewList[$val] = $product[$key]; 
-                    }
-                }
-                if($add) {
-                    fputcsv($outstream, $NewList, ',', '"');
-                }
-
-                $add = true;
-            }
-            
-            fclose($outstream);
-            die();
-          }
+            $this->getFeed();
+        }
             
         /* --- END PRODUCTS FEED  --- */
 
