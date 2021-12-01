@@ -271,10 +271,12 @@ class ControllerModuleRetargeting extends Controller {
                                 break;
                             }
                             if (isset($this->request->server['HTTPS']) && (($this->request->server['HTTPS'] == 'on') || ($this->request->server['HTTPS'] == '1'))) {
-                                $NewList[$val] = HTTPS_SERVER . 'image/' . str_replace(' ', '%20', $product['image']);
+                                $NewList[$val] = HTTPS_SERVER . 'image/' . $product['image'];
                             } else {
-                                $NewList[$val] = HTTP_SERVER . 'image/' . str_replace(' ', '%20', $product['image']);
+                                $NewList[$val] = HTTP_SERVER . 'image/' . $product['image'];
                             }
+                            
+                            $NewList[$val] = $this->fixURL($NewList[$val]);
                         break;
                         case 'product url':
                             $NewList[$val] = $this->url->link('product/product', 'product_id=' . $product['product_id']);
