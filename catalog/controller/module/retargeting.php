@@ -120,21 +120,25 @@ class ControllerModuleRetargeting extends Controller {
                             $add = false;
                             break;
                         }
-                        $NewList[$val] = round(
-                            $this->tax->calculate(
-                              $product['price'],
-                              $product['tax_class_id'],
-                              $this->config->get('config_tax')
-                            ), 2);
+                        
+                        $NewList[$val] = number_format((float) $this->tax->calculate(
+                            $product[$val],
+                            $product['tax_class_id'],
+                            $this->config->get('config_tax')
+                          ), 2, '.', '');
                     break;
 
                     case 'sale price':
-                        if($product[$key] == 0){
+
+                        if(empty($product[$key])){
                             $product[$key] = $product['price'];
                         }
-                        $NewList[$val] = round (
-                            $this->tax->calculate($product[$key], $product['tax_class_id'], $this->config->get('config_tax'))
-                        );
+
+                        $NewList[$val] = number_format(
+                            (float) $this->tax->calculate($product[$key],
+                                $product['tax_class_id'],
+                                $this->config->get('config_tax')),
+                            2, '.', '');
                     break;
 
                     case 'brand':
